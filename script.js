@@ -20,21 +20,22 @@ let dataCartItems;
 let subTotla;
 let totlaPriceElem;
 
-xhr.open("get", "https://fakestoreapi.com/products");
+xhr.open("get", "https://dummyjson.com/products/category/groceries");
 xhr.send();
 xhr.addEventListener("readystatechange", function () {
   if (xhr.readyState == 4 && xhr.status == 200) {
-    let products = JSON.parse(xhr.responseText);
+    let products = JSON.parse(xhr.responseText).products;
     let products1 = document.getElementById("products1");
     let tbody = document.getElementsByTagName("tbody")[1];
     let items = document.getElementsByClassName("items");
+    console.log(products);
 
     if (products1) {
       for (const product of products) {
         products1.innerHTML += `
           <div class="col-md-3 mb-5 col-4">
             <div class="card border-0">
-              <a href="products-details.html"><img src="${product.image}" class="card-img-top" alt="Product1" width="200px" height="300px"></a>
+              <a href="products-details.html"><img src="${product.thumbnail}" class="card-img-top" alt="Product1" width="200px" height="300px"></a>
               <div class="card-body text-center">
                 <h5 class="card-title">${product.title}</h5>
                 <p class="card-text">$${product.price}</p>
@@ -49,13 +50,17 @@ xhr.addEventListener("readystatechange", function () {
     for (const item of items) {
       item.addEventListener("click", function (event) {
         event.preventDefault(); // Prevent page reload or jump
-
+        let clickedPro;
         let itemID = Number(event.target.id);
         if (localStorage.getItem("cartItems") == null) {
-          cartItems.push(products[itemID - 1]);
+          clickedPro = products.find((product) => product.id === itemID);
+          cartItems.push(products[products.indexOf(clickedPro)]);
+
           cartItems.forEach((obj) => (obj.quantity = 1));
           localStorage.setItem("cartItems", JSON.stringify(cartItems));
         } else {
+          clickedPro = products.find((product) => product.id === itemID);
+
           cartItems = JSON.parse(localStorage.getItem("cartItems"));
           for (const cartItem of cartItems) {
             if (!("quantity" in cartItem)) {
@@ -66,7 +71,7 @@ xhr.addEventListener("readystatechange", function () {
           if (cartItem) {
             cartItem.quantity += 1;
           } else {
-            cartItems.push(products[itemID - 1]);
+            cartItems.push(products[products.indexOf(clickedPro)]);
             cartItems.forEach((obj) => (obj.quantity = 1));
           }
           localStorage.setItem("cartItems", JSON.stringify(cartItems));
@@ -85,7 +90,7 @@ xhr.addEventListener("readystatechange", function () {
           <tr>
             <td>
               <div class="cart-info">
-                <img src="${dataCartItem.image}" />
+                <img src="${dataCartItem.thumbnail}" />
                 <div>
                   <p>${dataCartItem.title}</p>
                   <small>Price: $${dataCartItem.price}</small><br />
@@ -155,7 +160,7 @@ function newCounterFun(_this) {
   updateCartCounter();
   setTimeout(() => {
     location.reload();
-  }, 2000);
+  }, 1000);
 }
 
 // Remove item from cart
@@ -191,6 +196,7 @@ if (!(form[0] == undefined)) {
       localStorage.setItem("username", username);
       localStorage.setItem("email", email);
       localStorage.setItem("password", password);
+      alert("Successfully registered.");
     });
 
   document
@@ -210,7 +216,13 @@ if (!(form[0] == undefined)) {
     });
 }
 if (userName) {
-  userName.innerHTML = `
+  if (storedUsername == null) {
+    userName.innerHTML = `
+    <span></span>
+    `;
+  } else {
+    userName.innerHTML = `
   <span>${storedUsername}</span>
   `;
+  }
 }
